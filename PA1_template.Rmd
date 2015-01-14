@@ -1,25 +1,69 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "PA1_template"
+output: html_document
 ---
 
+```{r}
+dat <- read.csv("activity.csv", header = T) #load data
 
-## Loading and preprocessing the data
+spl <- split(dat,dat$date) #split data by date
+vec = vector('numeric') #initialize vector
+for(i in 1:length(spl)){
+  vec[i] <- sum(spl[[i]]$steps, na.rm=TRUE)
+}
+hist(vec) #histogram
+mean(vec) #mean
+median(vec) #median
 
+spl2 <- split(dat,dat$interval) #split data by interval
+vec2 = vector('numeric') #initialize vector
+for(i in 1:length(spl2)){
+  vec2[i] <- mean(spl2[[i]]$steps, na.rm=TRUE)
+}
+max <- which.max(vec2)
+intrvl <- spl[[1]]$interval
+plot(intrvl,vec2,type="l",col="black") #plot
+intrvl[max] #max
 
+sum(is.na(dat)) #NA rows
+#use mean for 5-min intervals to replace NAs
+for(i in 1:nrow(dat)){
+  if(is.na(dat[i,1])){
+    index <- match(dat[i,3],intrvl)
+    dat[i,1] <- vec2[index]
+  }
+}
+new_dat <- dat #new data after filling in NAs
+spl3 <- split(new_dat,new_dat$date) #split data by date
+vec3 = vector('numeric') #initialize vector
+for(i in 1:length(spl3)){
+  vec3[i] <- sum(spl3[[i]]$steps, na.rm=TRUE)
+}
+hist(vec3) #histogram
+mean(vec3) #mean
+median(vec3) #median
 
-## What is mean total number of steps taken per day?
+new_dat$day <- weekdays(as.Date(new_dat$date)) #add column with days of week
+#create weekday/weekend column
+for(i in 1:nrow(new_dat)){
+  if(new_dat[i,4]=="Sunday" | new_dat[i,4]=="Saturday"){
+    new_dat[i,5] <- "weekend"
+  }
+  else{
+    new_dat[i,5] <- "weekday"
+  }
+}
+spl4 <- split(new_dat,list(new_dat$interval,new_dat$V5)) #split data by interval
+vec4 = vector('numeric') #initialize vector
+vec5 = vector('numeric') #initialize vector
+for(i in 1:288){
+  vec4[i] <- mean(spl4[[i]]$steps, na.rm=TRUE)
+}
+for(i in 289:576){
+  vec5[i-288] <- mean(spl4[[i]]$steps, na.rm=TRUE)
+}
+par(mfrow=c(2,1))
+plot(intrvl,vec5,type="l",xlab="Interval",ylab="Number of steps",main="weekend",ylim=c(0,250))
+plot(intrvl,vec4,type="l",xlab="Interval",ylab="Number of steps",main="weekday",ylim=c(0,250))
+```
 
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
